@@ -1,0 +1,5 @@
+services:
+  control:
+    build: control
+    ports:
+      - 5000:8080
