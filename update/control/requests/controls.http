@@ -1,0 +1,21 @@
+@host=http://localhost:5000
+### Get All
+
+GET /
+
+### Post Message
+POST / 
+Content-Type: application/json
+
+{
+    "message": "{{$input message}}"
+}
+
+### Post invalid json
+
+POST / 
+Content-Type: application/json
+
+{
+    "message"
+}

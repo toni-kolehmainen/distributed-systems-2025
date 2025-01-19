@@ -1,42 +1,5 @@
 services:
-  # control:
-  #   build: control
-  mongo:
-    build:
-      context: control
-      dockerfile: dockerfile
-    image: mongo:latest
+  control:
+    build: control
     ports:
-      - "27017:27017"  # Expose MongoDB on localhost
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
-
-  grpc-service:
-    build:
-      context: control
-      dockerfile: dockerfile
-    # container_name: grpc-service
-    ports:
-      - "50052:50052"  # Expose gRPC service port
-    depends_on:
-      - mongo
-    networks:
-      - grpc_network
-    environment:
-      - MONGO_URI=mongodb://mongo:27017
-  grpc-client:
-    build:
-      context: control
-      dockerfile: dockerfile
-    # container_name: grpc-client
-    networks:
-      - grpc_network
-    command: ["python", "client.py"]
-    depends_on:
-      - grpc-service  # Ensure grpc-service is up before starting the client
-networks:
-  grpc_network:
-    driver: bridge
-volumes:
-  mongo_data: {}
+      - 5000:8080
