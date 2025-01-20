@@ -1,0 +1,2 @@
+python -m grpc_tools.protoc -I=. --python_out=./calculator --pyi_out=./calculator --grpc_python_out=./calculator *.proto
+python -m grpc_tools.protoc -I=. --python_out=./control --pyi_out=./control --grpc_python_out=./control *.proto
