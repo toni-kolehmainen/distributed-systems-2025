@@ -15,7 +15,7 @@ async def send_one(topic, message, bootstrap_servers='localhost:9092'):
         await producer.stop()
 
 async def main():
-    topic_name = 'the_topic'  # Change this to your topic
+    topic_name = 'the_topic'
     message = {'order_id': 123, 'product': 'widget', 'quantity': 10}
     await send_one(topic_name, message)
 
