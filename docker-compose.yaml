@@ -1,12 +1,14 @@
 services:
-  control:
-    build: control
-    ports:
-      - 5000:8080
-    environment:
-      - CALCULATOR_URI=calculator:50052
-    depends_on:
-      - calculator
+  # control:
+  #   build: control
+  #   ports:
+  #     - 5000:8080
+  #   environment:
+  #     - CALCULATOR_URI=calculator:50052
+  #     - KAFKA_URI=kafka:9092
+  #   depends_on:
+  #     - calculator
+  #     - kafka
 
   calculator:
     build:
@@ -19,6 +21,25 @@ services:
     environment:
       - MONGO_URI=mongodb://root:example@mongo:27017
       - GRPC_DNS_RESOLVER=native
+
+  # producer:
+  #   build:
+  #     context: producer
+  #   depends_on:
+  #     - kafka
+  #   environment:
+  #     KAFKA_URI: kafka:9092
+
+  kafka:
+    image: docker.io/apache/kafka:latest
+    ports:
+      - 9092:9092
+      - 29092:29092
+    # environment:
+    #   KAFKA_LISTENERS: PLAINTEXT://kafka:9092
+    #   KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+    #   KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+    #   KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
 
   mongo:
     image: docker.io/mongo:latest
@@ -37,3 +58,7 @@ services:
       ME_CONFIG_MONGODB_ADMINPASSWORD: example
       ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
       ME_CONFIG_BASICAUTH: false
+
+networks:
+  default:
+    driver: bridge

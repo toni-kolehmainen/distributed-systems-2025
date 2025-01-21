@@ -4,3 +4,7 @@
 ./compile.sh
 docker-compose up -d --build
 ```
+
+```mermaidjs
+
+```

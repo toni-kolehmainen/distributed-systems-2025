@@ -4,10 +4,14 @@ import calculator_pb2
 import calculator_pb2_grpc
 from flask import Flask, request, make_response
 from werkzeug.exceptions import BadRequest
+from kafka import KafkaConsumer
 
 app = Flask(__name__)
 env_calc = os.environ.get("CALCULATOR_URI")
+env_kafka = os.environ.get("KAFKA_URI")
+
 CALCULATOR_URI = env_calc if env_calc else "localhost:50052"
+KAFKA_URI = env_kafka if env_kafka else "localhost:9092"
 
 
 @app.get("/")
@@ -18,6 +22,13 @@ def index():
         return make_response(
             {"message": "Basic demonstration control API", "'1+2'": response.result}
         )
+
+
+@app.get("/kafka")
+def get_kafka():
+    consumer = KafkaConsumer("words", bootstrap_servers=KAFKA_URI)
+    words = next(consumer).value.decode("utf-8")
+    return make_response({"words": words})
 
 
 @app.post("/")
