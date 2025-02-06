@@ -3,3 +3,4 @@ __pycache__
 env
 venv
 ds
+*_pb2*.py*

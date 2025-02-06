@@ -1,3 +1,10 @@
 # Distributed Systems 2025 Course Project
 
-`docker-compose up -d --build`
+```sh
+./compile.sh
+docker-compose up -d --build
+```
+
+```mermaidjs
+
+```
