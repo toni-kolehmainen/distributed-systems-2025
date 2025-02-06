@@ -24,11 +24,11 @@ def index():
         )
 
 
-@app.get("/kafka")
+""" @app.get("/kafka")
 def get_kafka():
     consumer = KafkaConsumer("words", bootstrap_servers=KAFKA_URI)
     words = next(consumer).value.decode("utf-8")
-    return make_response({"words": words})
+    return make_response({"words": words}) """
 
 
 @app.post("/")
