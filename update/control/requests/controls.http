@@ -1,7 +1,10 @@
 @host=http://localhost:5000
-### Get All
+### Get GRPC
 
 GET /
+
+### GET Kafka
+GET /kafka
 
 ### Post Message
 POST / 
