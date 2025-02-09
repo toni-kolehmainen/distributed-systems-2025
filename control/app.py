@@ -5,9 +5,13 @@ import calculator_pb2_grpc
 import requests
 from flask import Flask, request, make_response
 from werkzeug.exceptions import BadRequest
-from kafka import KafkaConsumer
+from prometheus_flask_exporter import PrometheusMetrics
+
+
 
 app = Flask(__name__)
+metrics = PrometheusMetrics(app)
+metrics.info('app_info', 'Application info', version='1.0.3')
 env_calc = os.environ.get("CALCULATOR_URI")
 env_kafka = os.environ.get("KAFKA_URI")
 enc_kafkaservice = os.environ.get("KAFKASERVICE_URI")
@@ -18,6 +22,10 @@ KAFKA_URI = env_kafka if env_kafka else "localhost:9092"
 KAFKASERVICE_URI = enc_kafkaservice if enc_kafkaservice else "http://kafkaservice:8084"
 
 @app.get("/")
+@metrics.histogram('http_request_duration_seconds', 'Request latencies by status and path',
+                   labels={'status': lambda r: r.status_code, 'path': lambda: request.path})
+@metrics.gauge('process_cpu_usage', 'Current CPU usage in percent')
+@metrics.gauge('process_memory_usage_bytes', 'Current memory usage in bytes')
 def index():
     with grpc.insecure_channel(CALCULATOR_URI) as channel:
         stub = calculator_pb2_grpc.CalculatorStub(channel)
@@ -26,15 +34,8 @@ def index():
             {"message": "Basic demonstration control API", "'1+2'": response.result}
         )
 
-
-""" @app.get("/kafka")
-def get_kafka():
-    consumer = KafkaConsumer("words", bootstrap_servers=KAFKA_URI)
-    words = next(consumer).value.decode("utf-8")
-    return make_response({"words": words}) """
-
-
 @app.post("/")
+@metrics.do_not_track()
 def post_message():
     try:
         message = request.json["message"]
@@ -46,6 +47,7 @@ def post_message():
         raise BadRequest()
 
 @app.post("/new_topic")
+@metrics.do_not_track()
 def new_kafka_topic():
     if request.content_type != 'application/json':
         return make_response("Request content type must be JSON", 415)
@@ -60,6 +62,7 @@ def new_kafka_topic():
 
 # test that kafka works with grpc
 @app.post("/send_producer")
+@metrics.do_not_track()
 def post_message_kafka():
     if request.content_type != 'application/json':
         return make_response("Request content type must be JSON", 415)
@@ -87,6 +90,7 @@ def post_message_kafka():
         return make_response({"error": f"Kafka service error: {e}"}, 500)
 
 @app.post("/start_consumer")
+@metrics.do_not_track()
 def start_consumer():
     if request.content_type != 'application/json':
         return make_response("Request content type must be JSON", 415)
@@ -100,5 +104,6 @@ def start_consumer():
         return make_response({"error": "Bad Request"}), 400
 
 @app.errorhandler(BadRequest)
+@metrics.do_not_track()
 def handle_bad_request(e):
     return make_response(e.description, 400)

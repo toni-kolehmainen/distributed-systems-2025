@@ -1,15 +1,17 @@
 services:
   control:
-    build: control
+    build:
+      context: control
+      dockerfile: dockerfile
     ports:
-       - 5000:8080
+      - 5000:8080
     environment:
-       - CALCULATOR_URI=calculator:50052
-       - KAFKA_URI=broker:29092
-       - KAFKASERVICE_URI=http://kafkaservice:8084
+      - CALCULATOR_URI=calculator:50052
+      - KAFKA_URI=broker:29092
+      - KAFKASERVICE_URI=http://kafkaservice:8084
     depends_on:
-       - calculator
-       - kafkaservice
+      - calculator
+      - kafkaservice
 
   calculator:
     build:
@@ -22,7 +24,7 @@ services:
     environment:
       - MONGO_URI=mongodb://root:example@mongo:27017
       - GRPC_DNS_RESOLVER=native
-  
+
   kafkaservice:
     build:
       context: kafkaservice
@@ -33,6 +35,7 @@ services:
       - broker
     environment:
       KAFKA_URI: broker:29092
+
   broker:
     image: apache/kafka:latest
     container_name: broker
@@ -56,25 +59,6 @@ services:
       KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
 
-  # producer:
-  #   build:
-  #     context: producer
-  #   depends_on:
-  #     - kafka
-  #   environment:
-  #     KAFKA_URI: kafka:9092
-
-#  kafka:
- #   image: docker.io/apache/kafka:latest
-  #  ports:
-   #   - 9092:9092
-    #  - 29092:29092
-    # environment:
-    #   KAFKA_LISTENERS: PLAINTEXT://kafka:9092
-    #   KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-    #   KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-    #   KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
-
   mongo:
     image: docker.io/mongo:latest
     ports:
@@ -93,6 +77,59 @@ services:
       ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
       ME_CONFIG_BASICAUTH: false
 
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    # command:
+    #   - '--config.file=/etc/prometheus.yaml'
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+
+  grafana:
+    image: grafana/grafana-enterprise:9.4.7
+    ports:
+      - 3000:3000
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=root
+      - GF_SECURITY_ADMIN_USER=root
+
+    volumes:
+      - "grafana_storage:/var/lib/grafana"
+
+  pyspy:
+    build:
+      context: pyspy
+      dockerfile: dockerfile
+    pid: "host"
+    privileged: "true"
+    volumes:
+      - .:/profiles
+
+  locust:
+    image: locustio/locust
+    ports:
+      - "8089:8089"
+    volumes:
+      - ./:/mnt/locust
+    command: -f /mnt/locust/load_tests.py
+
+  locust-metrics-exporter:
+    container_name: locust-metrics-exporter
+    image: containersol/locust_exporter
+    ports:
+      - "9646:9646"
+    environment:
+      - LOCUST_EXPORTER_URI=http://locust:8089
+    depends_on:
+      - locust
+
 networks:
   default:
     driver: bridge
+
+volumes:
+  grafana_storage: {}
+  prometheus_data: {}

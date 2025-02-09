@@ -1,6 +1,7 @@
 @host=http://localhost:5000
-### Get GRPC
+### END VARS
 
+### Get GRPC
 GET /
 
 ### GET Kafka
@@ -25,7 +26,7 @@ Content-Type: application/json
 
 ### Create new topic
 POST /new_topic
-
+Content-Type: application/json
 {
   "topic": "topikki"
 }
@@ -33,7 +34,7 @@ POST /new_topic
 
 ### Send to kafka grpc response
 POST /send_producer
-
+Content-Type: application/json
 {
   "topic": "topikki",
   "number1": 1,
@@ -42,7 +43,7 @@ POST /send_producer
 
 ### Start consumer with topic name
 POST /start_consumer
-
+Content-Type: application/json
 {
   "topic": "topikki"
 }
