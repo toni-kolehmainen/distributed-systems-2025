@@ -18,3 +18,25 @@ http://localhost:3000
 docker inspect --format '{{.State.Pid}}' control
 docker-compose run pyspy record -o myprofile.svg --pid <id>
 ```
+
+## Deployment
+
+```sh
+# on host machine
+# compile proto files
+./compile.sh
+
+# build containers
+docker compose pull && docker compose build
+
+# replace credentials in charts
+cd charts
+grep "<REPLACE>" *
+
+
+# deploy to cluster
+sudo kubectl apply -f .
+
+# remove from cluster
+sudo kubectl delete -f  .
+```

@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f ../cc.yaml
+    kompose.version: 1.35.0 (9532ceef3)
+  labels:
+    io.kompose.service: control
+  name: control
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: control
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f ../cc.yaml
+        kompose.version: 1.35.0 (9532ceef3)
+      labels:
+        io.kompose.service: control
+    spec:
+      containers:
+        - env:
+            - name: CALCULATOR_URI
+              value: calculator:50052
+            - name: KAFKASERVICE_URI
+              value: http://kafkaservice:8084
+            - name: KAFKA_URI
+              value: broker:29092
+          image: distributed-systems-2025-control
+          name: control
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+      restartPolicy: Always

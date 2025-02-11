@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f ../cc.yaml
+    kompose.version: 1.35.0 (9532ceef3)
+  labels:
+    io.kompose.service: kafkaservice
+  name: kafkaservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: kafkaservice
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f ../cc.yaml
+        kompose.version: 1.35.0 (9532ceef3)
+      labels:
+        io.kompose.service: kafkaservice
+    spec:
+      containers:
+        - env:
+            - name: KAFKA_URI
+              value: broker:29092
+          image: distributed-systems-2025-kafkaservice
+          imagePullPolicy: Never
+          name: kafkaservice
+          ports:
+            - containerPort: 8084
+              protocol: TCP
+      restartPolicy: Always

@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f ../cc.yaml
+    kompose.version: 1.35.0 (9532ceef3)
+  labels:
+    io.kompose.service: locust-metrics-exporter
+  name: locust-metrics-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: locust-metrics-exporter
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f ../cc.yaml
+        kompose.version: 1.35.0 (9532ceef3)
+      labels:
+        io.kompose.service: locust-metrics-exporter
+    spec:
+      containers:
+        - env:
+            - name: LOCUST_EXPORTER_URI
+              value: http://locust:8089
+          image: docker.io/containersol/locust_exporter
+          name: locust-metrics-exporter
+          ports:
+            - containerPort: 9646
+              protocol: TCP
+      restartPolicy: Always
