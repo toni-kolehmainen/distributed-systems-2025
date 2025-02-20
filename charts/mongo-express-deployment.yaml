@@ -1,3 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f ../cc.yaml
+    kompose.version: 1.35.0 (9532ceef3)
+  labels:
+    io.kompose.service: mongo-express
+  name: mongo-express
+spec:
+  ports:
+    - name: "8081"
+      port: 8081
+      targetPort: 8081
+  selector:
+    io.kompose.service: mongo-express
+  type: LoadBalancer
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -20,19 +38,25 @@ spec:
       labels:
         io.kompose.service: mongo-express
     spec:
+      tolerations:
+        - key: "non-high-memory"
+          operator: "Equal"
+          value: "true"
+          effect: "NoSchedule"
       containers:
         - env:
             - name: ME_CONFIG_BASICAUTH
               value: "false"
-            - name: ME_CONFIG_MONGODB_ADMINPASSWORD
-              value: example
             - name: ME_CONFIG_MONGODB_ADMINUSERNAME
-              value: root
+              value: "admin"
+            - name: ME_CONFIG_MONGODB_ADMINPASSWORD
+              value: "password"
             - name: ME_CONFIG_MONGODB_URL
-              value: mongodb://<REPLACE>:<REPLACE>@mongo:27017/
-          image: docker.io/mongo-express
+              value: "mongodb://admin:password@mongo-0.mongo:27017,mongo-1.mongo:27017,mongo-2.mongo:27017/?replicaSet=rs0"
+          image: docker.io/mongo-express:latest
           name: mongo-express
           ports:
             - containerPort: 8081
               protocol: TCP
       restartPolicy: Always
+---

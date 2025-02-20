@@ -1,0 +1,8 @@
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: high-priority
+value: 1000000  # A high value means high priority
+globalDefault: false  # Do not set this priority class as the default for all pods
+description: "This priority class is for high priority workloads like critical services"
+preemptionPolicy: PreemptLowerPriority 

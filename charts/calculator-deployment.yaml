@@ -7,6 +7,7 @@ metadata:
   labels:
     io.kompose.service: calculator
   name: calculator
+  namespace: microservices
 spec:
   replicas: 1
   selector:
@@ -20,6 +21,30 @@ spec:
       labels:
         io.kompose.service: calculator
     spec:
+
+      # nodeSelector:
+      #   role-microservices: "true"
+      priorityClassName: "medium-priority"  # Set priority to medium for calculator service
+      # affinity:
+      #   nodeAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       nodeSelectorTerms:
+      #         - matchExpressions:
+      #             - key: "role-microservices"
+      #               operator: In
+      #               values:
+      #                 - "true"  # Ensure calculator runs on nodes with standard memory
+        # podAntiAffinity:
+        #   preferredDuringSchedulingIgnoredDuringExecution:
+        #     - weight: 100
+        #       podAffinityTerm:
+        #         labelSelector:
+        #           matchExpressions:
+        #             - key: io.kompose.service
+        #               operator: In
+        #               values:
+        #                 - calculator
+        #         topologyKey: "kubernetes.io/hostname" 
       containers:
         - env:
             - name: GRPC_DNS_RESOLVER
@@ -32,4 +57,11 @@ spec:
           ports:
             - containerPort: 50052
               protocol: TCP
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
       restartPolicy: Always

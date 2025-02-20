@@ -7,6 +7,7 @@ metadata:
   labels:
     io.kompose.service: control
   name: control
+  namespace: microservices
 spec:
   replicas: 1
   selector:
@@ -20,8 +21,35 @@ spec:
       labels:
         io.kompose.service: control
     spec:
+
+      priorityClassName: "medium-priority"  # Assign medium priority for control service
+      # affinity:
+      #   nodeAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       nodeSelectorTerms:
+      #         - matchExpressions:
+      #             - key: "kubernetes.io/memory-type"
+      #               operator: In
+      #               values:
+      #                 - standard-memory  # Ensure control pods run on nodes with standard memory
+      #   podAntiAffinity:
+      #     preferredDuringSchedulingIgnoredDuringExecution:
+      #       - weight: 100
+      #         podAffinityTerm:
+      #           labelSelector:
+      #             matchExpressions:
+      #               - key: io.kompose.service
+      #                 operator: In
+      #                 values:
+      #                   - control
+      #           topologyKey: "kubernetes.io/hostname"
       containers:
         - env:
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: my-api-secret
+                  key: api_key
             - name: CALCULATOR_URI
               value: calculator:50052
             - name: KAFKASERVICE_URI
@@ -34,4 +62,11 @@ spec:
           ports:
             - containerPort: 8080
               protocol: TCP
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
       restartPolicy: Always

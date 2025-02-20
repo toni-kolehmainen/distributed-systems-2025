@@ -1,3 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-broker-0
+  namespace: microservices
+data:
+  broker-id: "1"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f ../cc.yaml
+    kompose.version: 1.35.0 (9532ceef3)
+  labels:
+    io.kompose.service: broker
+  name: broker
+  namespace: microservices
+spec:
+  clusterIP: "None"
+  ports:
+    - name: "9092"
+      port: 9092
+      targetPort: 9092
+    - name: "29092"
+      port: 29092
+      targetPort: 29092
+    - name: "29093"
+      port: 29093
+      targetPort: 29093
+  selector:
+    io.kompose.service: broker
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -7,6 +40,7 @@ metadata:
   labels:
     io.kompose.service: broker
   name: broker
+  namespace: microservices
 spec:
   replicas: 1
   selector:
@@ -22,6 +56,17 @@ spec:
     spec:
       containers:
         - env:
+            # - name: broker-1
+            #   value: "1"
+            # - name: POD_NAME
+            #   valueFrom:
+            #     fieldRef:
+            #       fieldPath: metadata.name
+            # - name: TEST
+            #   valueFrom:
+            #     configMapKeyRef:
+            #       name: kafka-broker-$(POD_INDEX)  # Reference the correct ConfigMap
+            #       key: broker-id
             - name: CLUSTER_ID
               value: MkU3OEVBNTcwNTJENDM2Qk
             - name: KAFKA_ADVERTISED_LISTENERS
@@ -52,6 +97,7 @@ spec:
               value: "1"
             - name: KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR
               value: "1"
+          # command: ["/bin/sh", "-c", "export numeric_value=$(echo $POD_NAME | sed 's/[^0-9]*//g'); exec /usr/bin/kafka-server-start"]
           image: docker.io/apache/kafka:latest
           name: broker
           ports:
@@ -61,4 +107,12 @@ spec:
               protocol: TCP
             - containerPort: 29093
               protocol: TCP
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "1"
+            limits:
+              memory: "4Gi"
+              cpu: "2"
       restartPolicy: Always
+---

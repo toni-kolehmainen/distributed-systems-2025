@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: microservices-limit-range
+  namespace: microservices
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: "500m"                 # Default CPU limit
+        memory: "512Mi"             # Default memory limit
+      defaultRequest:
+        cpu: "250m"                 # Default CPU request
+        memory: "256Mi"             # Default memory request
+      max:
+        cpu: "2"                    # Maximum per container
+        memory: "1Gi"

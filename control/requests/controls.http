@@ -47,3 +47,17 @@ Content-Type: application/json
 {
   "topic": "topikki"
 }
+### Distriputed ML Basic
+POST /suggest_enhancements 
+Content-Type: application/json
+
+{
+    "input": "Ping answer with Pong"
+}
+### Distriputed ML
+POST /suggest_enhancements 
+Content-Type: application/json
+
+{
+    "input": "{{$input message}}"
+}

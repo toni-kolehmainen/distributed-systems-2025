@@ -1,34 +1,85 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Service
 metadata:
-  annotations:
-    kompose.cmd: kompose convert -f ../cc.yaml
-    kompose.version: 1.35.0 (9532ceef3)
-  labels:
-    io.kompose.service: mongo
   name: mongo
 spec:
-  replicas: 1
+  clusterIP: None # This makes it headless
+  selector:
+    app: mongo
+  ports:
+    - port: 27017
+      name: mongo
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongo
+spec:
+  serviceName: mongo
+  replicas: 3
   selector:
     matchLabels:
-      io.kompose.service: mongo
+      app: mongo
   template:
     metadata:
-      annotations:
-        kompose.cmd: kompose convert -f ../cc.yaml
-        kompose.version: 1.35.0 (9532ceef3)
       labels:
-        io.kompose.service: mongo
+        app: mongo
     spec:
+
+      priorityClassName: "high-priority"
+      # affinity:
+      #   nodeAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       nodeSelectorTerms:
+      #         - matchExpressions:
+      #             - key: "role-database"
+      #               operator: In
+      #               values:
+      #                 - "true"
+      #   podAntiAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       - labelSelector:
+      #           matchExpressions:
+      #             - key: io.kompose.service
+      #               operator: In
+      #               values:
+      #                 - mongo
+      #         topologyKey: "kubernetes.io/hostname"
       containers:
-        - env:
+        - name: mongo
+          image: mongo:latest
+          command:
+            - "mongod"
+            - "--replSet"
+            - "rs0"
+            - "--bind_ip_all"
+          env:
             - name: MONGO_INITDB_ROOT_PASSWORD
-              value: <REPLACE>
+              value: example
             - name: MONGO_INITDB_ROOT_USERNAME
-              value: <REPLACE>
-          image: docker.io/mongo:latest
-          name: mongo
+              value: root
+            - name: MONGO_REPLICA_SET_NAME
+              value: "rs0"
+            - name: MONGO_REPLICA_SET_HOSTS
+              value: "mongo-0.mongo,mongo-1.mongo,mongo-2.mongo"
           ports:
             - containerPort: 27017
-              protocol: TCP
-      restartPolicy: Always
+          volumeMounts:
+            - name: mongodb-data
+              mountPath: /data/db
+          # resources:
+          #     requests:
+          #       memory: "256Mi"
+          #       cpu: "250m"
+          #     limits:
+          #       memory: "512Mi"
+          #       cpu: "500m"
+  volumeClaimTemplates:
+    - metadata:
+        name: mongodb-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 1Gi
+        # storageClassName: local-path
